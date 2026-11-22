@@ -23,7 +23,7 @@
   --serif:"Instrument Serif",Georgia,serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
+html{scroll-behavior:smooth;scroll-padding-top:68px}
 body{font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);background:var(--bg);line-height:1.6;font-size:16px;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
 a{color:inherit;text-decoration:none}
 svg{display:block}
@@ -54,7 +54,7 @@ h2.title{font-size:clamp(2rem,3.6vw,2.9rem);line-height:1.1;font-weight:600}
 .btn .ico{width:17px;height:17px}
 
 /* nav */
-header.nav{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.82);backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid transparent;transition:border-color .2s}
+header.nav{position:fixed;top:0;left:0;right:0;transition:transform .6s var(--ease,ease),opacity .6s,border-color .2s;z-index:40;background:rgba(255,255,255,.82);backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid transparent;transition:border-color .2s}
 header.nav.scrolled{border-bottom-color:var(--line)}
 .nav-in{display:flex;align-items:center;height:68px;gap:40px}
 .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.12rem;letter-spacing:-.02em}
@@ -70,7 +70,7 @@ footer .brand .logo{height:26px}
 .hx-av img{width:60%;height:auto;display:block}
 
 /* hero */
-.hero{position:relative;padding:88px 0 96px;overflow:hidden;border-bottom:1px solid var(--line)}
+.hero{position:relative;padding:156px 0 96px;overflow:hidden;border-bottom:1px solid var(--line)}
 .hero::before{content:"";position:absolute;inset:0;background-image:linear-gradient(var(--line-2) 1px,transparent 1px),linear-gradient(90deg,var(--line-2) 1px,transparent 1px);background-size:56px 56px;-webkit-mask-image:radial-gradient(ellipse 70% 60% at 50% 0%,#000 30%,transparent 75%);mask-image:radial-gradient(ellipse 70% 60% at 50% 0%,#000 30%,transparent 75%);pointer-events:none}
 .hero::after{content:"";position:absolute;width:760px;height:520px;right:-180px;top:-140px;background:radial-gradient(closest-side,rgba(99,102,241,.16),transparent);pointer-events:none}
 .hero-grid{position:relative;z-index:1;display:grid;grid-template-columns:1.05fr .95fr;gap:64px;align-items:center}
@@ -317,7 +317,7 @@ footer{padding:72px 0 104px}
 @media (max-width:600px){
   .wrap{padding:0 16px}
   section{padding:68px 0}
-  .hero{padding:56px 0 64px}
+  .hero{padding:124px 0 64px}
   .bento,.perks,.steps{grid-template-columns:1fr}
   .ind-panel{padding:24px}
   .foot-grid{grid-template-columns:1fr}
@@ -325,10 +325,36 @@ footer{padding:72px 0 104px}
   .hx-launch span.txt{display:none}.hx-launch{padding:0 8px}
   .mock-tag{display:none}
 }
+
+/* ===== front page ===== */
+.intro{position:relative;height:100vh;height:100svh;min-height:560px;display:grid;place-items:center;overflow:hidden;background:#fff}
+.intro::before{content:"";position:absolute;inset:0;background-image:linear-gradient(var(--line-2) 1px,transparent 1px),linear-gradient(90deg,var(--line-2) 1px,transparent 1px);background-size:64px 64px;-webkit-mask-image:radial-gradient(ellipse 55% 55% at 50% 50%,#000 20%,transparent 75%);mask-image:radial-gradient(ellipse 55% 55% at 50% 50%,#000 20%,transparent 75%);opacity:.8}
+.intro::after{content:"";position:absolute;width:720px;height:720px;left:50%;top:50%;margin:-360px 0 0 -360px;background:radial-gradient(closest-side,rgba(99,102,241,.13),transparent);animation:introGlow 8s ease-in-out infinite alternate}
+@keyframes introGlow{from{transform:translate(-60px,-30px) scale(.9)}to{transform:translate(60px,30px) scale(1.1)}}
+.intro-in{position:relative;z-index:1;text-align:center;display:flex;flex-direction:column;align-items:center;will-change:transform,opacity}
+.intro-logo{width:clamp(110px,14vw,170px);height:auto;animation:introLogo 1.6s var(--ease) .15s both,introFloat 6s ease-in-out 1.8s infinite}
+@keyframes introLogo{from{opacity:0;transform:scale(.6) rotate(-14deg);filter:blur(12px)}to{opacity:1;transform:none;filter:none}}
+@keyframes introFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.intro-name{margin-top:34px;font-size:clamp(3rem,8vw,6.2rem);font-weight:600;letter-spacing:-.055em;line-height:1;color:var(--ink);display:flex}
+.intro-name span{display:inline-block;animation:introChar 1s var(--ease) both}
+@keyframes introChar{from{opacity:0;transform:translateY(40%);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
+.intro-tag{margin-top:22px;font-size:.78rem;font-weight:600;letter-spacing:.42em;text-transform:uppercase;color:var(--muted);padding-left:.42em;animation:heroUp 1s var(--ease) 1.5s both}
+.intro-scroll{position:absolute;left:50%;bottom:36px;transform:translateX(-50%);z-index:1;display:flex;flex-direction:column;align-items:center;gap:12px;font-size:.72rem;font-weight:600;letter-spacing:.3em;text-transform:uppercase;color:var(--faint);padding-left:.3em;animation:heroUp 1s var(--ease) 2.1s both;transition:opacity .4s}
+.intro-scroll i{display:block;width:1px;height:46px;background:linear-gradient(var(--line),var(--ink));position:relative;overflow:hidden}
+.intro-scroll i::after{content:"";position:absolute;left:0;top:-50%;width:1px;height:50%;background:#fff;animation:scrollCue 2s cubic-bezier(.6,0,.2,1) 2.4s infinite}
+@keyframes scrollCue{to{top:110%}}
+/* nav + Hexa stay hidden on the front page */
+body:not(.past-intro) header.nav{transform:translateY(-100%);opacity:0;pointer-events:none}
+body:not(.past-intro) .hx-launch{transform:translateY(120px);opacity:0;pointer-events:none}
+.hx-launch{transition:transform .6s var(--ease,ease),opacity .6s}
+body.past-intro .intro-scroll{opacity:0}
+/* hero intro waits until the hero is reached */
+.hero:not(.go) *,.hero:not(.go){animation-play-state:paused !important}
+html.static .intro{height:900px}
+@media (max-width:600px){html.static .intro{height:844px}}
+
 /* ================= Animations ================= */
 :root{--ease:cubic-bezier(.16,1,.3,1)}
-/* scroll progress bar */
-.progress{position:fixed;top:0;left:0;height:2px;width:100%;transform-origin:0 50%;transform:scaleX(0);background:linear-gradient(90deg,#6d5bff,#4f46e5);z-index:80}
 
 /* generic scroll reveals (assigned by JS) */
 [data-a]{opacity:0;transition:opacity .9s var(--ease),transform .9s var(--ease),filter .9s var(--ease);transition-delay:var(--d,0ms)}
@@ -477,7 +503,7 @@ html.static .steps::before{transform:none}
 <!-- NAV -->
 <header class="nav" id="nav">
   <div class="wrap nav-in">
-    <a href="#top" class="brand"><img class="logo" src="assets/logo.png" alt="" width="34" height="28">Hexonor</a>
+    <a href="#intro" class="brand"><img class="logo" src="assets/logo.png" alt="" width="34" height="28">Hexonor</a>
     <nav class="nav-links" id="navLinks">
       <a href="#services">Services</a>
       <a href="#industries">Industries</a>
@@ -494,6 +520,16 @@ html.static .steps::before{transform:none}
 </header>
 
 <!-- HERO -->
+<!-- FRONT PAGE -->
+<section class="intro" id="intro" aria-label="Hexonor">
+  <div class="intro-in">
+    <img class="intro-logo" src="assets/logo.png" alt="Hexonor logo" width="170" height="142">
+    <h1 class="intro-name" aria-label="Hexonor"><span style="animation-delay:.55s">H</span><span style="animation-delay:.62s">e</span><span style="animation-delay:.69s">x</span><span style="animation-delay:.76s">o</span><span style="animation-delay:.83s">n</span><span style="animation-delay:.90s">o</span><span style="animation-delay:.97s">r</span></h1>
+    <p class="intro-tag">AI Automation Agency</p>
+  </div>
+  <div class="intro-scroll" aria-hidden="true">Scroll<i></i></div>
+</section>
+
 <section class="hero" id="top">
   <div class="wrap hero-grid">
     <div>
@@ -806,7 +842,7 @@ html.static .steps::before{transform:none}
   <div class="wrap">
     <div class="foot-grid">
       <div>
-        <a href="#top" class="brand"><img class="logo" src="assets/logo.png" alt="" width="31" height="26">Hexonor</a>
+        <a href="#intro" class="brand"><img class="logo" src="assets/logo.png" alt="" width="31" height="26">Hexonor</a>
         <p>AI automation agency building assistants that answer, capture and book, 24/7.</p>
       </div>
       <div><h4>Services</h4><ul><li><a href="#services">Website chatbots</a></li><li><a href="#services">WhatsApp &amp; Instagram</a></li><li><a href="#services">AI voice agents</a></li><li><a href="#services">Workflow automation</a></li></ul></div>
@@ -892,10 +928,14 @@ showInd(0);
   if (STATIC) document.documentElement.classList.add('static');
   const reduce = STATIC || matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  /* scroll progress bar */
-  const bar = document.createElement('div'); bar.className = 'progress'; document.body.appendChild(bar);
-  const prog = () => { const h = document.documentElement.scrollHeight - innerHeight; bar.style.transform = 'scaleX(' + (h > 0 ? scrollY / h : 0) + ')'; };
-  addEventListener('scroll', prog, { passive: true }); addEventListener('resize', prog); prog();
+  /* front page: fade/scale out while scrolling, reveal nav + Hexa after it */
+  const intro = document.getElementById('intro'), introIn = document.querySelector('.intro-in');
+  const onIntro = () => {
+    const h = intro.offsetHeight || 1, p = Math.min(1, Math.max(0, scrollY / h));
+    if (!reduce) { introIn.style.opacity = String(Math.max(0, 1 - p * 1.6)); introIn.style.transform = 'translateY(' + (-p * 90) + 'px) scale(' + (1 - p * .08) + ')'; }
+    document.body.classList.toggle('past-intro', scrollY > h * .55);
+  };
+  addEventListener('scroll', onIntro, { passive: true }); addEventListener('resize', onIntro); onIntro();
 
   /* assign reveal animations: [selector, type, stagger ms] */
   const groups = [
@@ -955,7 +995,9 @@ showInd(0);
   const body = document.querySelector('.mock-body');
   function place(el) { body.insertBefore(typing, el); }
   const at = (ms, fn) => setTimeout(fn, reduce ? 0 : ms);
-  if (reduce) { seq.forEach(x => x.classList.add('show')); f1.classList.add('show'); f2.classList.add('show'); } else {
+  const hero = document.querySelector('.hero');
+  if (reduce) { hero.classList.add('go'); seq.forEach(x => x.classList.add('show')); f1.classList.add('show'); f2.classList.add('show'); } else whenSeen(hero, () => {
+  hero.classList.add('go');
   at(1300, () => seq[0].classList.add('show'));
   at(1900, () => { place(seq[1]); typing.classList.add('show'); });
   at(3000, () => { typing.classList.remove('show'); seq[1].classList.add('show'); f2.classList.add('show'); });
@@ -963,7 +1005,7 @@ showInd(0);
   at(4600, () => { place(seq[3]); typing.classList.add('show'); });
   at(5600, () => { typing.classList.remove('show'); seq[3].classList.add('show'); });
   at(6300, () => f1.classList.add('show'));
-  }
+  }, .3);
 
   /* value numbers count up / down */
   function countTo(el, from, to, ms, prefix) {
