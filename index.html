@@ -354,6 +354,10 @@ html.static .intro{height:900px}
 @media (max-width:600px){html.static .intro{height:844px}}
 
 /* ================= Animations ================= */
+/* replay helpers */
+.no-tr,.no-tr *{transition:none !important}
+.reset,.reset *{animation:none !important}
+
 :root{--ease:cubic-bezier(.16,1,.3,1)}
 
 /* generic scroll reveals (assigned by JS) */
@@ -974,40 +978,58 @@ showInd(0);
   // plan feature lists: stagger each bullet
   document.querySelectorAll('.plan').forEach(pl => pl.querySelectorAll('.feat li').forEach((li, i) => li.style.transitionDelay = (400 + i * 70) + 'ms'));
 
+  /* ---- replayable reveals: animate in on entry, reset once fully out of view ---- */
   const show = el => el.classList.add('in');
+  const hide = el => { el.classList.add('no-tr'); el.classList.remove('in'); void el.offsetWidth; el.classList.remove('no-tr'); };
   const io = ('IntersectionObserver' in window && !reduce) ? new IntersectionObserver(es => es.forEach(e => {
-    if (e.isIntersecting) { show(e.target); io.unobserve(e.target); }
-  }), { threshold: .14, rootMargin: '0px 0px -6% 0px' }) : null;
+    if (e.intersectionRatio >= .14) show(e.target);
+    else if (e.intersectionRatio === 0) hide(e.target);
+  }), { threshold: [0, .14], rootMargin: '0px 0px -6% 0px' }) : null;
   document.querySelectorAll('[data-a]').forEach(el => io ? io.observe(el) : show(el));
 
-  /* run a callback once when an element scrolls into view */
-  function whenSeen(el, fn, threshold) {
+  /* enter/leave callbacks every time an element comes into / goes out of view */
+  function whileSeen(el, enter, leave, threshold) {
     if (!el) return;
-    if (!('IntersectionObserver' in window)) return fn();
-    const o = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { o.disconnect(); fn(); } }), { threshold: threshold || .35 });
-    o.observe(el);
+    if (!('IntersectionObserver' in window)) return enter();
+    let inside = false;
+    new IntersectionObserver(es => es.forEach(e => {
+      if (e.intersectionRatio >= threshold && !inside) { inside = true; enter(e); }
+      else if (e.intersectionRatio === 0 && inside) { inside = false; leave && leave(e); }
+    }), { threshold: [0, threshold] }).observe(el);
   }
+  const timers = {};
+  const later = (key, ms, fn) => (timers[key] = timers[key] || []).push(setTimeout(fn, ms));
+  const cancel = key => { (timers[key] || []).forEach(clearTimeout); timers[key] = []; };
+  const restart = el => { el.classList.add('reset'); void el.offsetWidth; el.classList.remove('reset'); };
+  const below = e => e.boundingClientRect.top > 0; // left the viewport by scrolling back up
 
-  /* hero: chat types itself out */
+  /* front page: replay the logo + name animation when you come back to the top */
+  if (!reduce) whileSeen(intro, () => restart(intro), null, .6);
+
+  /* hero: headline + chat typing replay every time the hero is reached */
   const seq = [...document.querySelectorAll('.mock-body .bub.seq')];
   const typing = document.getElementById('mockTyping');
   const f1 = document.querySelector('.mock .f1'), f2 = document.querySelector('.mock .f2');
   const body = document.querySelector('.mock-body');
-  function place(el) { body.insertBefore(typing, el); }
-  const at = (ms, fn) => setTimeout(fn, reduce ? 0 : ms);
+  const place = el => body.insertBefore(typing, el);
   const hero = document.querySelector('.hero');
-  if (reduce) { hero.classList.add('go'); seq.forEach(x => x.classList.add('show')); f1.classList.add('show'); f2.classList.add('show'); } else whenSeen(hero, () => {
-  hero.classList.add('go');
-  at(1300, () => seq[0].classList.add('show'));
-  at(1900, () => { place(seq[1]); typing.classList.add('show'); });
-  at(3000, () => { typing.classList.remove('show'); seq[1].classList.add('show'); f2.classList.add('show'); });
-  at(4000, () => seq[2].classList.add('show'));
-  at(4600, () => { place(seq[3]); typing.classList.add('show'); });
-  at(5600, () => { typing.classList.remove('show'); seq[3].classList.add('show'); });
-  at(6300, () => f1.classList.add('show'));
+  if (reduce) { hero.classList.add('go'); seq.forEach(x => x.classList.add('show')); f1.classList.add('show'); f2.classList.add('show'); }
+  else whileSeen(hero, () => {
+    hero.classList.add('go');
+    later('hero', 1300, () => seq[0].classList.add('show'));
+    later('hero', 1900, () => { place(seq[1]); typing.classList.add('show'); });
+    later('hero', 3000, () => { typing.classList.remove('show'); seq[1].classList.add('show'); f2.classList.add('show'); });
+    later('hero', 4000, () => seq[2].classList.add('show'));
+    later('hero', 4600, () => { place(seq[3]); typing.classList.add('show'); });
+    later('hero', 5600, () => { typing.classList.remove('show'); seq[3].classList.add('show'); });
+    later('hero', 6300, () => f1.classList.add('show'));
+  }, () => {
+    cancel('hero');
+    hero.classList.remove('go'); restart(hero);
+    [...seq, f1, f2, typing].forEach(x => x.classList.remove('show'));
   }, .3);
 
-  /* value numbers count up / down */
+  /* value numbers count up / down each time */
   function countTo(el, from, to, ms, prefix) {
     const node = el.firstChild; if (!node || node.nodeType !== 3) return;
     const t0 = performance.now();
@@ -1015,13 +1037,12 @@ showInd(0);
     node.textContent = prefix + from; requestAnimationFrame(tick);
   }
   const nums = document.querySelectorAll('.value .num');
-  whenSeen(document.querySelector('.values'), () => {
-    if (reduce) return;
+  if (!reduce) whileSeen(document.querySelector('.values'), () => {
     if (nums[0]) countTo(nums[0], 0, 24, 1400, '');
     if (nums[1]) countTo(nums[1], 60, 10, 1600, '<');
-  }, .3);
+  }, null, .3);
 
-  /* industries: auto-cycle tabs while visible (stops once someone clicks) */
+  /* industries: auto-cycle tabs while visible; restart from Clinics on the next visit */
   const IND_MS = 4200; let indTimer = null;
   document.getElementById('indTabs').style.setProperty('--ind-ms', IND_MS + 'ms');
   function markAuto() { [...tabs.children].forEach((t, j) => { t.classList.remove('auto'); if (j === indCur && !indUser) { void t.offsetWidth; t.classList.add('auto'); } }); }
@@ -1031,26 +1052,26 @@ showInd(0);
     indTimer = setInterval(() => { if (indUser) { clearInterval(indTimer); indTimer = null; markAuto(); return; } showInd((indCur + 1) % IND.length); markAuto(); }, IND_MS);
   }
   function stopInd() { clearInterval(indTimer); indTimer = null; [...tabs.children].forEach(t => t.classList.remove('auto')); }
-  if ('IntersectionObserver' in window) {
-    new IntersectionObserver(es => es.forEach(e => e.isIntersecting ? startInd() : stopInd()), { threshold: .4 }).observe(document.querySelector('.ind'));
-  }
+  if (!reduce) whileSeen(document.querySelector('.ind'), () => startInd(), () => { stopInd(); if (!indUser) showInd(0); }, .4);
   tabs.addEventListener('click', () => stopInd());
 
-  /* pricing: demo the currency switch once (USD -> PKR -> USD) */
+  /* pricing: demo the currency switch (USD -> PKR -> USD) on every visit */
   const segBtns = document.querySelectorAll('.seg button');
-  whenSeen(document.querySelector('.plans'), () => {
-    if (reduce) return;
-    setTimeout(() => { if (!curUser) segBtns[1].click(); }, 2400);
-    setTimeout(() => { if (!curUser) segBtns[0].click(); }, 5600);
-  }, .3);
+  if (!reduce) whileSeen(document.querySelector('.plans'), () => {
+    later('price', 2400, () => { if (!curUser) segBtns[1].click(); });
+    later('price', 5600, () => { if (!curUser) segBtns[0].click(); });
+  }, () => { cancel('price'); if (!curUser && !segBtns[0].classList.contains('on')) segBtns[0].click(); }, .3);
 
-  /* comparison table + first FAQ open by themselves */
-  if (!STATIC) whenSeen(document.querySelector('details.compare'), () => setTimeout(() => document.querySelector('details.compare').open = true, 500), .6);
-  whenSeen(document.querySelector('.faq'), () => {
-    const d = document.querySelectorAll('.faq details');
-    setTimeout(() => d[0] && (d[0].open = true), 900);
-    if (!STATIC) setTimeout(() => d[2] && (d[2].open = true), 2200);
-  }, .3);
+  /* comparison table + FAQs open by themselves; they close again only when you scroll back above them
+     (closing while they're above the screen would make the page jump) */
+  const cmp = document.querySelector('details.compare');
+  if (!reduce) whileSeen(cmp, () => later('cmp', 500, () => cmp.open = true), e => { cancel('cmp'); if (below(e)) cmp.open = false; }, .6);
+  const faqs = document.querySelectorAll('.faq details');
+  if (reduce) { if (faqs[0]) faqs[0].open = true; }
+  else whileSeen(document.querySelector('.faq'), () => {
+    later('faq', 900, () => faqs[0] && (faqs[0].open = true));
+    later('faq', 2200, () => faqs[2] && (faqs[2].open = true));
+  }, e => { cancel('faq'); if (below(e)) faqs.forEach(d => d.open = false); }, .3);
 })();
 
 
