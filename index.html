@@ -423,6 +423,11 @@ details.compare[open] tbody tr{animation:heroUp .5s var(--ease) both}
 
 @media (max-width:1080px){.steps::before{display:none}}
 @media (max-width:920px){.strip-in{flex-direction:column;gap:16px}.marquee{width:100%;flex:none}}
+
+html.static *,html.static *::before,html.static *::after{animation:none !important;transition:none !important}
+html.static [data-a],html.static .bub.seq,html.static .mock .float,html.static .feat li,html.static .mini-chat div{opacity:1 !important;transform:none !important;filter:none !important}
+html.static h2.title .serif,html.static .band h2 .serif{background-size:100% 1.5px}
+html.static .steps::before{transform:none}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;transition-delay:0ms !important}
   [data-a],.bub.seq,.mock .float,.feat li,.mini-chat div{opacity:1 !important;transform:none !important;filter:none !important}
@@ -883,7 +888,9 @@ showInd(0);
 
 /* ================= Animation engine ================= */
 (function () {
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const STATIC = new URLSearchParams(location.search).has('static'); // screenshot mode: final state, no motion
+  if (STATIC) document.documentElement.classList.add('static');
+  const reduce = STATIC || matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   /* scroll progress bar */
   const bar = document.createElement('div'); bar.className = 'progress'; document.body.appendChild(bar);
@@ -948,6 +955,7 @@ showInd(0);
   const body = document.querySelector('.mock-body');
   function place(el) { body.insertBefore(typing, el); }
   const at = (ms, fn) => setTimeout(fn, reduce ? 0 : ms);
+  if (reduce) { seq.forEach(x => x.classList.add('show')); f1.classList.add('show'); f2.classList.add('show'); } else {
   at(1300, () => seq[0].classList.add('show'));
   at(1900, () => { place(seq[1]); typing.classList.add('show'); });
   at(3000, () => { typing.classList.remove('show'); seq[1].classList.add('show'); f2.classList.add('show'); });
@@ -955,6 +963,7 @@ showInd(0);
   at(4600, () => { place(seq[3]); typing.classList.add('show'); });
   at(5600, () => { typing.classList.remove('show'); seq[3].classList.add('show'); });
   at(6300, () => f1.classList.add('show'));
+  }
 
   /* value numbers count up / down */
   function countTo(el, from, to, ms, prefix) {
@@ -994,11 +1003,11 @@ showInd(0);
   }, .3);
 
   /* comparison table + first FAQ open by themselves */
-  whenSeen(document.querySelector('details.compare'), () => setTimeout(() => document.querySelector('details.compare').open = true, 500), .6);
+  if (!STATIC) whenSeen(document.querySelector('details.compare'), () => setTimeout(() => document.querySelector('details.compare').open = true, 500), .6);
   whenSeen(document.querySelector('.faq'), () => {
     const d = document.querySelectorAll('.faq details');
     setTimeout(() => d[0] && (d[0].open = true), 900);
-    setTimeout(() => d[2] && (d[2].open = true), 2200);
+    if (!STATIC) setTimeout(() => d[2] && (d[2].open = true), 2200);
   }, .3);
 })();
 
